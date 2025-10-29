@@ -127,7 +127,8 @@ const PluginsPage = () => {
       const data = await response.json();
 
       if (data.success) {
-        setPlugins([data.plugin, ...plugins]);
+        // Refresh data to get updated plugins list
+        await refreshData();
         setNewPlugin({ name: '', description: '', type: '', gistLink: '' });
         setShowAddDialog(false);
         toast.success('Your plugin has been submitted! Wait for approval.', {
@@ -162,9 +163,8 @@ const PluginsPage = () => {
         const data = await response.json();
 
         if (data.success) {
-          setPlugins(plugins.map(plugin =>
-            plugin.id === pluginId ? data.plugin : plugin
-          ));
+          // Refresh data to get updated plugins list
+          await refreshData();
           
           const hasLiked = data.plugin.likedBy && data.plugin.likedBy.includes(user.id.toString());
           toast.success(hasLiked ? 'Plugin liked!' : 'Plugin unliked!');

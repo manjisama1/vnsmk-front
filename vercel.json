@@ -23,7 +23,8 @@
     }
   ],
   "env": {
-    "VITE_API_BASE_URL": "https://vnsmk-back.onrender.com"
+    "VITE_API_BASE_URL": "https://vnsmk-back.onrender.com",
+    "VITE_ADMIN_USER_IDS": "111729787"
   },
   "buildCommand": "npm run build"
 }
