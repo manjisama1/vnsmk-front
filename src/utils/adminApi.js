@@ -1,5 +1,6 @@
 // Admin API utility functions with enhanced security
 import { secureAdminCheck, secureStorage, secureErrorHandler, validateUserData } from '@/utils/security';
+import { API_BASE_URL } from '@/config/api';
 
 const getAuthHeaders = () => {
   try {
@@ -37,8 +38,11 @@ const getAuthHeaders = () => {
 };
 
 // Secure API wrapper
-const secureApiCall = async (url, options = {}) => {
+const secureApiCall = async (endpoint, options = {}) => {
   try {
+    // Construct full URL using API_BASE_URL
+    const url = endpoint.startsWith('http') ? endpoint : `${API_BASE_URL}${endpoint}`;
+    
     const response = await fetch(url, {
       ...options,
       headers: {
@@ -69,7 +73,7 @@ const secureApiCall = async (url, options = {}) => {
     
     return response;
   } catch (error) {
-    throw new Error(secureErrorHandler(error, `API Call: ${url}`));
+    throw new Error(secureErrorHandler(error, `API Call: ${endpoint}`));
   }
 };
 
