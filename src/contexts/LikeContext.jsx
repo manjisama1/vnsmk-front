@@ -51,10 +51,8 @@ export const LikeProvider = ({ children }) => {
       );
 
       await Promise.all(promises);
-      toast.success(`Updated ${Object.keys(likesToProcess).length} plugin likes`);
     } catch (error) {
       console.error('Error processing likes:', error);
-      toast.error('Failed to update some likes');
       setPendingLikes(prev => ({ ...prev, ...likesToProcess }));
     } finally {
       setProcessing(false);

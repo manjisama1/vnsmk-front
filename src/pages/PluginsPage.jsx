@@ -18,7 +18,7 @@ import { API_ENDPOINTS } from '@/config/api';
 const PluginsPage = () => {
   const { user, requireAuth, showLogin, setShowLogin, startGitHubLogin, loading: authLoading } = useAuth();
   const { plugins, loading, refreshData } = useData();
-  const { toggleLike, getPendingLikeStatus, hasPendingLikes, getRemainingTime, processing, pendingCount } = useLikes();
+  const { toggleLike, getPendingLikeStatus } = useLikes();
   
   const [filteredPlugins, setFilteredPlugins] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -157,7 +157,7 @@ const PluginsPage = () => {
       toggleLike(pluginId, user.id.toString(), actualStatus);
       
       const newStatus = !actualStatus;
-      toast.success(newStatus ? 'Plugin liked! (will sync in 5min)' : 'Plugin unliked! (will sync in 5min)');
+      toast.success(newStatus ? 'Plugin liked!' : 'Plugin unliked!');
     });
   };
 
@@ -200,19 +200,10 @@ const PluginsPage = () => {
                 {plugins.filter(p => p.status === 'pending').length} Pending
               </Badge>
             )}
-            {hasPendingLikes() && (
-              <Badge className="bg-blue-100 text-blue-800 border-blue-200">
-                {pendingCount} Likes Pending
-              </Badge>
-            )}
+
           </div>
           <p className="text-lg text-muted-foreground">
             Discover and manage plugins to extend your bot's functionality
-            {hasPendingLikes() && (
-              <span className="block text-sm text-blue-600 mt-1">
-                {pendingCount} like changes will sync in {Math.ceil(getRemainingTime() / 60000)} minutes
-              </span>
-            )}
           </p>
         </div>
 
@@ -447,7 +438,7 @@ const PluginsPage = () => {
                                   ? 'bg-red-50 text-red-600 border-red-200 hover:bg-red-100'
                                   : '';
                               })()
-                        } ${getPendingLikeStatus(plugin.id) !== undefined ? 'border-blue-300 bg-blue-50' : ''}`}
+                        }`}
                         disabled={isPending}
                       >
                         <Heart 
@@ -461,9 +452,6 @@ const PluginsPage = () => {
                           }`} 
                         />
                         {plugin.likes}
-                        {getPendingLikeStatus(plugin.id) !== undefined && (
-                          <span className="ml-1 text-xs text-blue-600">*</span>
-                        )}
                       </Button>
 
                       <Button
