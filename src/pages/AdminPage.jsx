@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Settings, Database, MessageSquare, HelpCircle, Shield, Activity } from 'lucide-react';
+import { Settings, Database, MessageSquare, HelpCircle, Shield, Activity, Save, X, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 import AdminGuard from '@/components/AdminGuard';
 import { AdminDataProvider, useAdminData } from '@/contexts/AdminDataContext';
 import SessionManagement from '@/components/admin/SessionManagement';
@@ -11,7 +13,27 @@ import SupportManagement from '@/components/admin/SupportManagement';
 
 const AdminContent = () => {
   const [activeTab, setActiveTab] = useState('sessions');
-  const { stats, refreshData } = useAdminData();
+  const { stats, hasUnsavedChanges, saveAllChanges, discardChanges, refreshData } = useAdminData();
+  const [saving, setSaving] = useState(false);
+
+  const handleSaveChanges = async () => {
+    setSaving(true);
+    try {
+      await saveAllChanges();
+      toast.success('All changes saved successfully!');
+    } catch (error) {
+      toast.error('Failed to save changes: ' + error.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDiscardChanges = () => {
+    if (confirm('Are you sure you want to discard all unsaved changes?')) {
+      discardChanges();
+      toast.info('Changes discarded');
+    }
+  };
 
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-7xl">
@@ -74,6 +96,51 @@ const AdminContent = () => {
           </CardContent>
         </Card>
       </div>
+
+      {hasUnsavedChanges && (
+        <Card className="mb-6 border-orange-200 bg-orange-50">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Settings className="w-5 h-5 text-orange-600" />
+                <div>
+                  <p className="font-medium text-orange-800">You have unsaved changes</p>
+                  <p className="text-sm text-orange-600">Click "Save Changes" to apply your modifications</p>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleDiscardChanges}
+                  className="border-orange-300 text-orange-700 hover:bg-orange-100"
+                >
+                  <X className="w-4 h-4 mr-2" />
+                  Discard
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={handleSaveChanges}
+                  disabled={saving}
+                  className="bg-orange-600 hover:bg-orange-700"
+                >
+                  {saving ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-4 h-4 mr-2" />
+                      Save Changes
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-4 mb-8">

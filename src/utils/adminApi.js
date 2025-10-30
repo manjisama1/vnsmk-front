@@ -68,6 +68,17 @@ const secureApiCall = async (endpoint, options = {}) => {
 };
 
 export const adminApi = {
+  async getBulkAdminData() {
+    return await secureApiCall('/api/admin-data');
+  },
+
+  async saveBulkChanges(changes) {
+    return await secureApiCall('/api/admin/bulk-save', {
+      method: 'POST',
+      body: JSON.stringify({ changes })
+    });
+  },
+
   async getStats() {
     return await secureApiCall('/api/admin/stats');
   },
@@ -87,6 +98,13 @@ export const adminApi = {
 
   async downloadSessions() {
     return await secureApiCall('/api/admin/sessions/download');
+  },
+
+  async downloadSessionCreds(sessionId) {
+    if (!sessionId || typeof sessionId !== 'string') {
+      throw new Error('Invalid session ID');
+    }
+    return await secureApiCall(`/api/admin/sessions/${encodeURIComponent(sessionId)}/download`);
   },
 
   async getPlugins() {
