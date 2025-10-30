@@ -1,57 +1,24 @@
-import React, { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Download, 
-  Trash2, 
-  Search, 
-  RefreshCw, 
-  Check,
-  X,
-  Eye,
-  Calendar,
-  User,
-  Heart,
-  ExternalLink
-} from 'lucide-react';
+import { Download, Trash2, Search, RefreshCw, Check, X, Eye, Calendar, User, Heart, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
 import { adminApi } from '@/utils/adminApi';
+import { useAdminData } from '@/contexts/AdminDataContext';
 
 const PluginManagement = ({ onStatsUpdate }) => {
-  const [plugins, setPlugins] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const { plugins, loading, refreshData } = useAdminData();
   const [searchQuery, setSearchQuery] = useState('');
-  const [filterStatus, setFilterStatus] = useState('all'); // all, pending, approved, rejected
-
-  useEffect(() => {
-    fetchPlugins();
-  }, []);
-
-  const fetchPlugins = async () => {
-    setLoading(true);
-    try {
-      const data = await adminApi.getPlugins();
-      if (data.success !== false) {
-        setPlugins(data.plugins || []);
-      } else {
-        toast.error(data.error || 'Failed to fetch plugins');
-      }
-    } catch (error) {
-      console.error('Error fetching plugins:', error);
-      toast.error('Error fetching plugins. Please check your admin permissions.');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [filterStatus, setFilterStatus] = useState('all');
 
   const updatePluginStatus = async (pluginId, status) => {
     try {
       const data = await adminApi.updatePluginStatus(pluginId, status);
       if (data.success !== false) {
         toast.success(`Plugin ${status} successfully`);
-        fetchPlugins();
+        refreshData();
         onStatsUpdate();
       } else {
         toast.error(data.error || `Failed to ${status} plugin`);
@@ -69,7 +36,7 @@ const PluginManagement = ({ onStatsUpdate }) => {
       const data = await adminApi.deletePlugin(pluginId);
       if (data.success !== false) {
         toast.success('Plugin deleted successfully');
-        fetchPlugins();
+        refreshData();
         onStatsUpdate();
       } else {
         toast.error(data.error || 'Failed to delete plugin');
@@ -136,7 +103,7 @@ const PluginManagement = ({ onStatsUpdate }) => {
       {/* Header Actions */}
       <div className="flex flex-col sm:flex-row gap-4 justify-between">
         <div className="flex gap-2">
-          <Button onClick={fetchPlugins} disabled={loading}>
+          <Button onClick={refreshData} disabled={loading}>
             <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
             Refresh
           </Button>

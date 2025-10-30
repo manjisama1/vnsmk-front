@@ -1,32 +1,18 @@
-import React, { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Download, 
-  Trash2, 
-  Search, 
-  RefreshCw, 
-  Plus,
-  Edit,
-  Save,
-  X,
-  Copy,
-  Check,
-  Eye,
-  Palette
-} from 'lucide-react';
+import { Download, Trash2, Search, RefreshCw, Plus, Edit, Save, Eye, Palette } from 'lucide-react';
 import { toast } from 'sonner';
 import { adminApi } from '@/utils/adminApi';
+import { useAdminData } from '@/contexts/AdminDataContext';
 import { HighlightedText, getHighlightColors } from '@/utils/textHighlight.jsx';
 
 const FAQManagement = ({ onStatsUpdate }) => {
-  const [faqs, setFaqs] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const { faqs, loading, refreshData } = useAdminData();
   const [searchQuery, setSearchQuery] = useState('');
   const [editingId, setEditingId] = useState(null);
   const [showAddDialog, setShowAddDialog] = useState(false);
@@ -39,27 +25,6 @@ const FAQManagement = ({ onStatsUpdate }) => {
     category: '',
     tags: ''
   });
-
-  useEffect(() => {
-    fetchFAQs();
-  }, []);
-
-  const fetchFAQs = async () => {
-    setLoading(true);
-    try {
-      const data = await adminApi.getFAQs();
-      if (data.success !== false) {
-        setFaqs(data.faqs || []);
-      } else {
-        toast.error(data.error || 'Failed to fetch FAQs');
-      }
-    } catch (error) {
-      console.error('Error fetching FAQs:', error);
-      toast.error('Error fetching FAQs. Please check your admin permissions.');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({
@@ -94,7 +59,7 @@ const FAQManagement = ({ onStatsUpdate }) => {
       const data = await adminApi.addFAQ(processedData);
       if (data.success !== false) {
         toast.success('FAQ added successfully!');
-        fetchFAQs();
+        refreshData();
         onStatsUpdate();
         clearForm();
         setShowAddDialog(false);
@@ -134,7 +99,7 @@ const FAQManagement = ({ onStatsUpdate }) => {
       const data = await adminApi.updateFAQ(editingId, processedData);
       if (data.success !== false) {
         toast.success('FAQ updated successfully!');
-        fetchFAQs();
+        refreshData();
         onStatsUpdate();
         clearForm();
         setShowEditDialog(false);
@@ -154,7 +119,7 @@ const FAQManagement = ({ onStatsUpdate }) => {
       const data = await adminApi.deleteFAQ(id);
       if (data.success !== false) {
         toast.success('FAQ deleted successfully!');
-        fetchFAQs();
+        refreshData();
         onStatsUpdate();
       } else {
         toast.error(data.error || 'Failed to delete FAQ');
@@ -211,7 +176,7 @@ const FAQManagement = ({ onStatsUpdate }) => {
             <Plus className="w-4 h-4 mr-2" />
             Add FAQ
           </Button>
-          <Button variant="outline" onClick={fetchFAQs} disabled={loading}>
+          <Button variant="outline" onClick={refreshData} disabled={loading}>
             <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
             Refresh
           </Button>
