@@ -451,7 +451,24 @@ const PluginsPage = () => {
                             })()
                           }`} 
                         />
-                        {plugin.likes}
+                        {(() => {
+                          const currentlyLiked = user && plugin.likedBy && plugin.likedBy.includes(user.id.toString());
+                          const pendingStatus = getPendingLikeStatus(plugin.id);
+                          
+                          if (pendingStatus !== undefined) {
+                            // User has pending like/unlike
+                            if (pendingStatus && !currentlyLiked) {
+                              // User liked (pending), show +1
+                              return plugin.likes + 1;
+                            } else if (!pendingStatus && currentlyLiked) {
+                              // User unliked (pending), show -1
+                              return plugin.likes - 1;
+                            }
+                          }
+                          
+                          // No pending changes, show original count
+                          return plugin.likes;
+                        })()}
                       </Button>
 
                       <Button

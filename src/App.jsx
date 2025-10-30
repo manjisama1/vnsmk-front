@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation, useSe
 import './index.css';
 import { Toaster } from './components/ui/sonner';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
-import { DataProvider } from './contexts/DataContext';
+import { DataProvider, useData } from './contexts/DataContext';
 import { LikeProvider } from './contexts/LikeContext';
 import Navigation from './components/Navigation';
 import SessionPage from './pages/SessionPage';
@@ -140,12 +140,22 @@ function App() {
     <Router>
       <AuthProvider>
         <DataProvider>
-          <LikeProvider>
+          <LikeProviderWrapper>
             <AppContent />
-          </LikeProvider>
+          </LikeProviderWrapper>
         </DataProvider>
       </AuthProvider>
     </Router>
+  );
+};
+
+const LikeProviderWrapper = ({ children }) => {
+  const { refreshData } = useData();
+  
+  return (
+    <LikeProvider onDataRefresh={refreshData}>
+      {children}
+    </LikeProvider>
   );
 }
 

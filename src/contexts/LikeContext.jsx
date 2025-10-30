@@ -12,7 +12,7 @@ export const useLikes = () => {
   return context;
 };
 
-export const LikeProvider = ({ children }) => {
+export const LikeProvider = ({ children, onDataRefresh }) => {
   const [pendingLikes, setPendingLikes] = useState({});
   const [processing, setProcessing] = useState(false);
   const timeoutRef = useRef(null);
@@ -51,6 +51,11 @@ export const LikeProvider = ({ children }) => {
       );
 
       await Promise.all(promises);
+      
+      // Refresh data to get updated like counts from server
+      if (onDataRefresh) {
+        onDataRefresh();
+      }
     } catch (error) {
       console.error('Error processing likes:', error);
       setPendingLikes(prev => ({ ...prev, ...likesToProcess }));
