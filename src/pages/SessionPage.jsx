@@ -232,22 +232,48 @@ const SessionPage = () => {
     }
   };
 
+  const cleanPhoneNumber = (phone) => {
+    if (!phone) return '';
+    
+    // Remove all non-digit characters except +
+    let cleaned = phone.replace(/[^\d+]/g, '');
+    
+    // Ensure it starts with +
+    if (!cleaned.startsWith('+')) {
+      cleaned = '+' + cleaned.replace(/\+/g, '');
+    }
+    
+    // Remove any extra + signs after the first one
+    cleaned = '+' + cleaned.substring(1).replace(/\+/g, '');
+    
+    return cleaned;
+  };
+
   const generatePairingCode = async () => {
     if (!phoneNumber) {
       toast.error('Please enter a phone number');
       return;
     }
 
-    // Validate international phone number format (must start with +)
-    if (!phoneNumber.startsWith('+')) {
+    // Clean the phone number
+    const cleanedNumber = cleanPhoneNumber(phoneNumber);
+    
+    // Validate cleaned number
+    if (!cleanedNumber.startsWith('+')) {
       toast.error('Phone number must start with + followed by country code (e.g., +1234567890)');
       return;
     }
 
-    // Validate minimum length after removing non-digits
-    const cleanNumber = phoneNumber.replace(/\D/g, '');
-    if (cleanNumber.length < 10) {
+    // Validate minimum length (+ plus at least 10 digits)
+    if (cleanedNumber.length < 11) {
       toast.error('Please enter a valid phone number with country code');
+      return;
+    }
+
+    // Validate it contains only digits after the +
+    const digitsOnly = cleanedNumber.substring(1);
+    if (!/^\d+$/.test(digitsOnly)) {
+      toast.error('Phone number can only contain digits after the country code');
       return;
     }
 
@@ -271,7 +297,7 @@ const SessionPage = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ phoneNumber: phoneNumber }),
+        body: JSON.stringify({ phoneNumber: cleanedNumber }),
       });
 
       const data = await response.json();
@@ -496,16 +522,24 @@ const SessionPage = () => {
                     <Input
                       id="phone"
                       type="tel"
-                      placeholder="+1234567890 (with + and country code)"
+                      placeholder="+1 (234) 567-8900 → will be cleaned to +12345678900"
                       value={phoneNumber}
                       onChange={(e) => setPhoneNumber(e.target.value)}
-                      className={`text-base ${phoneNumber && !phoneNumber.startsWith('+') ? 'border-red-500 focus:border-red-500' : ''}`}
+                      className={`text-base ${phoneNumber && !cleanPhoneNumber(phoneNumber).startsWith('+') ? 'border-red-500 focus:border-red-500' : ''}`}
                       disabled={loading}
                     />
-                    {phoneNumber && !phoneNumber.startsWith('+') && (
-                      <p className="text-red-500 text-sm mt-1">
-                        Phone number must start with + followed by country code
-                      </p>
+                    {phoneNumber && (
+                      <div className="text-sm mt-1">
+                        {!cleanPhoneNumber(phoneNumber).startsWith('+') ? (
+                          <p className="text-red-500">
+                            Phone number must start with + followed by country code
+                          </p>
+                        ) : (
+                          <p className="text-green-600">
+                            Will be sent as: {cleanPhoneNumber(phoneNumber)}
+                          </p>
+                        )}
+                      </div>
                     )}
                   </div>
                   <Button
