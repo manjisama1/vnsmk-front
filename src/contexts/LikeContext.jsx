@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { API_ENDPOINTS } from '@/config/api';
-import { toast } from 'sonner';
+
 
 const LikeContext = createContext();
 
@@ -17,7 +17,7 @@ export const LikeProvider = ({ children, onDataRefresh }) => {
   const [processing, setProcessing] = useState(false);
   const timeoutRef = useRef(null);
 
-  const BATCH_DELAY = 5 * 60 * 1000; // 5 minutes
+  const BATCH_DELAY = 5 * 60 * 1000;
 
   const addPendingLike = (pluginId, userId, isLiked) => {
     setPendingLikes(prev => ({

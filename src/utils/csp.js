@@ -1,46 +1,43 @@
-// Content Security Policy Configuration
 export const CSP_CONFIG = {
-  // Define allowed sources for different content types
   directives: {
     'default-src': ["'self'"],
     'script-src': [
       "'self'",
-      "'unsafe-inline'", // Required for Vite in development
-      'https://cdn.jsdelivr.net', // For any CDN scripts if needed
+      "'unsafe-inline'",
+      'https://cdn.jsdelivr.net',
     ],
     'style-src': [
       "'self'",
-      "'unsafe-inline'", // Required for styled-components and CSS-in-JS
+      "'unsafe-inline'",
       'https://fonts.googleapis.com',
     ],
     'font-src': [
       "'self'",
       'https://fonts.gstatic.com',
-      'data:', // For base64 encoded fonts
+      'data:',
     ],
     'img-src': [
       "'self'",
-      'data:', // For base64 images
-      'https://avatars.githubusercontent.com', // GitHub avatars
-      'https://ui-avatars.com', // Fallback avatars
-      'https://github.com', // GitHub images
+      'data:',
+      'https://avatars.githubusercontent.com',
+      'https://ui-avatars.com',
+      'https://github.com',
     ],
     'connect-src': [
       "'self'",
-      'https://api.github.com', // GitHub API
-      'https://github.com', // GitHub OAuth
-      'ws://localhost:*', // WebSocket for development
-      'wss://localhost:*', // Secure WebSocket for development
+      'https://api.github.com',
+      'https://github.com',
+      'ws://localhost:*',
+      'wss://localhost:*',
     ],
-    'frame-src': ["'none'"], // Prevent framing
-    'object-src': ["'none'"], // Prevent object/embed
-    'base-uri': ["'self'"], // Restrict base URI
-    'form-action': ["'self'"], // Restrict form submissions
-    'frame-ancestors': ["'none'"], // Prevent being framed
-    'upgrade-insecure-requests': [], // Upgrade HTTP to HTTPS in production
+    'frame-src': ["'none'"],
+    'object-src': ["'none'"],
+    'base-uri': ["'self'"],
+    'form-action': ["'self'"],
+    'frame-ancestors': ["'none'"],
+    'upgrade-insecure-requests': [],
   },
 
-  // Generate CSP header string
   generateHeader: () => {
     const directives = Object.entries(CSP_CONFIG.directives)
       .map(([key, values]) => {
@@ -52,7 +49,6 @@ export const CSP_CONFIG = {
     return directives;
   },
 
-  // Apply CSP via meta tag (fallback method)
   applyMetaTag: () => {
     const existingMeta = document.querySelector('meta[http-equiv="Content-Security-Policy"]');
     if (existingMeta) {
@@ -65,7 +61,6 @@ export const CSP_CONFIG = {
     document.head.appendChild(meta);
   },
 
-  // Validate if a URL is allowed by CSP
   isAllowedSource: (url, directive = 'default-src') => {
     try {
       const urlObj = new URL(url);
@@ -86,29 +81,15 @@ export const CSP_CONFIG = {
   }
 };
 
-// Security headers configuration
 export const SECURITY_HEADERS = {
-  // Prevent MIME type sniffing
   'X-Content-Type-Options': 'nosniff',
-  
-  // Prevent clickjacking
   'X-Frame-Options': 'DENY',
-  
-  // XSS protection
   'X-XSS-Protection': '1; mode=block',
-  
-  // Referrer policy
   'Referrer-Policy': 'strict-origin-when-cross-origin',
-  
-  // Permissions policy
   'Permissions-Policy': 'camera=(), microphone=(), geolocation=(), payment=()',
 };
 
-// Apply security headers (for development testing)
 export const applySecurityHeaders = () => {
-  // Note: In production, these should be set by the server
-  // This is mainly for development awareness
-  
   if (process.env.NODE_ENV === 'development') {
     console.log('🔒 Security Headers (should be set by server in production):', SECURITY_HEADERS);
     console.log('🔒 Content Security Policy:', CSP_CONFIG.generateHeader());

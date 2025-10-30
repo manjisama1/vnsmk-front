@@ -1,7 +1,6 @@
-// Data Caching Utility with 30-minute expiration
 class DataCache {
   constructor() {
-    this.CACHE_DURATION = 30 * 60 * 1000; // 30 minutes in milliseconds
+    this.CACHE_DURATION = 30 * 60 * 1000;
     this.CACHE_KEYS = {
       PUBLIC_DATA: 'vinsmoke_public_data',
       ADMIN_DATA: 'vinsmoke_admin_data',
@@ -9,7 +8,6 @@ class DataCache {
     };
   }
 
-  // Set data with timestamp
   setCache(key, data) {
     const cacheData = {
       data,
@@ -25,7 +23,6 @@ class DataCache {
     }
   }
 
-  // Get data if not expired
   getCache(key) {
     try {
       const cached = localStorage.getItem(key);
@@ -34,7 +31,6 @@ class DataCache {
       const cacheData = JSON.parse(cached);
       const now = Date.now();
 
-      // Check if expired
       if (now > cacheData.expires) {
         localStorage.removeItem(key);
         console.log(`⏰ Cache expired for ${key}`);
@@ -51,13 +47,11 @@ class DataCache {
     }
   }
 
-  // Clear specific cache
   clearCache(key) {
     localStorage.removeItem(key);
     console.log(`🗑️ Cleared cache for ${key}`);
   }
 
-  // Clear all caches
   clearAllCache() {
     Object.values(this.CACHE_KEYS).forEach(key => {
       localStorage.removeItem(key);
@@ -65,13 +59,11 @@ class DataCache {
     console.log('🗑️ Cleared all caches');
   }
 
-  // Check if cache exists and is valid
   isCacheValid(key) {
     const cached = this.getCache(key);
     return cached !== null;
   }
 
-  // Get cache info for debugging
   getCacheInfo(key) {
     try {
       const cached = localStorage.getItem(key);
@@ -93,10 +85,8 @@ class DataCache {
   }
 }
 
-// Create singleton instance
 const dataCache = new DataCache();
 
-// Public API functions
 export const setPublicDataCache = (data) => {
   dataCache.setCache(dataCache.CACHE_KEYS.PUBLIC_DATA, data);
 };
