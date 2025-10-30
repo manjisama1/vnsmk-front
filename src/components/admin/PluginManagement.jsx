@@ -9,42 +9,20 @@ import { adminApi } from '@/utils/adminApi';
 import { useAdminData } from '@/contexts/AdminDataContext';
 
 const PluginManagement = ({ onStatsUpdate }) => {
-  const { plugins, loading, refreshData } = useAdminData();
+  const { plugins, loading, refreshData, updatePlugin, deletePlugin } = useAdminData();
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
 
-  const updatePluginStatus = async (pluginId, status) => {
-    try {
-      const data = await adminApi.updatePluginStatus(pluginId, status);
-      if (data.success !== false) {
-        toast.success(`Plugin ${status} successfully`);
-        refreshData();
-        onStatsUpdate();
-      } else {
-        toast.error(data.error || `Failed to ${status} plugin`);
-      }
-    } catch (error) {
-      console.error(`Error ${status} plugin:`, error);
-      toast.error(`Error ${status} plugin. Please check your admin permissions.`);
-    }
+  const updatePluginStatus = (pluginId, status) => {
+    updatePlugin(pluginId, { status });
+    toast.success(`Plugin ${status}! Click "Save Changes" to apply.`);
   };
 
-  const deletePlugin = async (pluginId) => {
-    if (!confirm('Are you sure you want to delete this plugin? This action cannot be undone.')) return;
+  const handleDeletePlugin = (pluginId) => {
+    if (!confirm('Are you sure you want to delete this plugin? Click "Save Changes" to apply the deletion.')) return;
 
-    try {
-      const data = await adminApi.deletePlugin(pluginId);
-      if (data.success !== false) {
-        toast.success('Plugin deleted successfully');
-        refreshData();
-        onStatsUpdate();
-      } else {
-        toast.error(data.error || 'Failed to delete plugin');
-      }
-    } catch (error) {
-      console.error('Error deleting plugin:', error);
-      toast.error('Error deleting plugin. Please check your admin permissions.');
-    }
+    deletePlugin(pluginId);
+    toast.success('Plugin marked for deletion! Click "Save Changes" to apply.');
   };
 
   const downloadPluginData = () => {
@@ -193,7 +171,7 @@ const PluginManagement = ({ onStatsUpdate }) => {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => deletePlugin(plugin.id)}
+                      onClick={() => handleDeletePlugin(plugin.id)}
                       className="text-red-600 hover:text-red-700"
                     >
                       <Trash2 className="w-4 h-4" />

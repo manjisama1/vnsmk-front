@@ -12,7 +12,7 @@ import { useAdminData } from '@/contexts/AdminDataContext';
 import { HighlightedText, getHighlightColors } from '@/utils/textHighlight.jsx';
 
 const FAQManagement = ({ onStatsUpdate }) => {
-  const { faqs, loading, refreshData } = useAdminData();
+  const { faqs, loading, refreshData, addFAQ, updateFAQ, deleteFAQ } = useAdminData();
   const [searchQuery, setSearchQuery] = useState('');
   const [editingId, setEditingId] = useState(null);
   const [showAddDialog, setShowAddDialog] = useState(false);
@@ -43,33 +43,21 @@ const FAQManagement = ({ onStatsUpdate }) => {
     setEditingId(null);
   };
 
-  const handleAddFAQ = async () => {
+  const handleAddFAQ = () => {
     if (!formData.question || !formData.answer || !formData.category) {
       toast.error('Please fill in all required fields');
       return;
     }
 
-    try {
-      // Process tags - convert comma-separated string to array
-      const processedData = {
-        ...formData,
-        tags: formData.tags ? formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag) : []
-      };
-      
-      const data = await adminApi.addFAQ(processedData);
-      if (data.success !== false) {
-        toast.success('FAQ added successfully!');
-        refreshData();
-        onStatsUpdate();
-        clearForm();
-        setShowAddDialog(false);
-      } else {
-        toast.error(data.error || 'Failed to add FAQ');
-      }
-    } catch (error) {
-      console.error('Error adding FAQ:', error);
-      toast.error('Error adding FAQ. Please check your admin permissions.');
-    }
+    const processedData = {
+      ...formData,
+      tags: formData.tags ? formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag) : []
+    };
+    
+    addFAQ(processedData);
+    toast.success('FAQ added! Click "Save Changes" to apply.');
+    clearForm();
+    setShowAddDialog(false);
   };
 
   const handleEditFAQ = (faq) => {
@@ -83,51 +71,28 @@ const FAQManagement = ({ onStatsUpdate }) => {
     setShowEditDialog(true);
   };
 
-  const handleUpdateFAQ = async () => {
+  const handleUpdateFAQ = () => {
     if (!formData.question || !formData.answer || !formData.category) {
       toast.error('Please fill in all required fields');
       return;
     }
 
-    try {
-      // Process tags - convert comma-separated string to array
-      const processedData = {
-        ...formData,
-        tags: formData.tags ? formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag) : []
-      };
-      
-      const data = await adminApi.updateFAQ(editingId, processedData);
-      if (data.success !== false) {
-        toast.success('FAQ updated successfully!');
-        refreshData();
-        onStatsUpdate();
-        clearForm();
-        setShowEditDialog(false);
-      } else {
-        toast.error(data.error || 'Failed to update FAQ');
-      }
-    } catch (error) {
-      console.error('Error updating FAQ:', error);
-      toast.error('Error updating FAQ. Please check your admin permissions.');
-    }
+    const processedData = {
+      ...formData,
+      tags: formData.tags ? formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag) : []
+    };
+    
+    updateFAQ(editingId, processedData);
+    toast.success('FAQ updated! Click "Save Changes" to apply.');
+    clearForm();
+    setShowEditDialog(false);
   };
 
-  const handleDeleteFAQ = async (id) => {
-    if (!confirm('Are you sure you want to delete this FAQ? This action cannot be undone.')) return;
+  const handleDeleteFAQ = (id) => {
+    if (!confirm('Are you sure you want to delete this FAQ? Click "Save Changes" to apply the deletion.')) return;
 
-    try {
-      const data = await adminApi.deleteFAQ(id);
-      if (data.success !== false) {
-        toast.success('FAQ deleted successfully!');
-        refreshData();
-        onStatsUpdate();
-      } else {
-        toast.error(data.error || 'Failed to delete FAQ');
-      }
-    } catch (error) {
-      console.error('Error deleting FAQ:', error);
-      toast.error('Error deleting FAQ. Please check your admin permissions.');
-    }
+    deleteFAQ(id);
+    toast.success('FAQ marked for deletion! Click "Save Changes" to apply.');
   };
 
   const handlePreviewFAQ = (faq) => {
