@@ -47,26 +47,22 @@ const PluginManagement = ({ onStatsUpdate }) => {
     }
   };
 
-  const downloadPluginData = async () => {
+  const downloadPluginData = () => {
     try {
-      const response = await adminApi.downloadPlugins();
-      if (response.ok) {
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `plugins-${new Date().toISOString().split('T')[0]}.json`;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
-        toast.success('Plugin data downloaded');
-      } else {
-        toast.error('Failed to download plugin data');
-      }
+      const dataStr = JSON.stringify(plugins, null, 2);
+      const blob = new Blob([dataStr], { type: 'application/json' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `plugins-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      toast.success('Plugin data downloaded');
     } catch (error) {
       console.error('Error downloading plugin data:', error);
-      toast.error('Error downloading plugin data. Please check your admin permissions.');
+      toast.error('Error downloading plugin data.');
     }
   };
 

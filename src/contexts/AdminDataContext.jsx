@@ -33,7 +33,7 @@ export const AdminDataProvider = ({ children }) => {
 
     try {
       const result = await adminApi.getBulkAdminData();
-      
+
       if (result.success) {
         setData({
           stats: result.stats || { totalSessions: 0, totalPlugins: 0, pendingPlugins: 0, totalFAQs: 0 },
@@ -120,9 +120,9 @@ export const AdminDataProvider = ({ children }) => {
   const saveAllChanges = async () => {
     try {
       setLoading(true);
-      
+
       const changes = [];
-      
+
       Object.entries(pendingChanges.plugins).forEach(([id, pluginChanges]) => {
         if (pluginChanges._deleted) {
           changes.push({ type: 'deletePlugin', id });
@@ -143,7 +143,7 @@ export const AdminDataProvider = ({ children }) => {
 
       await adminApi.saveBulkChanges(changes);
       await fetchAllAdminData();
-      
+
       return true;
     } catch (error) {
       throw error;

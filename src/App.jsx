@@ -4,6 +4,7 @@ import './index.css';
 import { Toaster } from './components/ui/sonner';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { DataProvider } from './contexts/DataContext';
+import { LikeProvider } from './contexts/LikeContext';
 import Navigation from './components/Navigation';
 import SessionPage from './pages/SessionPage';
 import PluginsPage from './pages/PluginsPage';
@@ -139,7 +140,9 @@ function App() {
     <Router>
       <AuthProvider>
         <DataProvider>
-          <AppContent />
+          <LikeProvider>
+            <AppContent />
+          </LikeProvider>
         </DataProvider>
       </AuthProvider>
     </Router>

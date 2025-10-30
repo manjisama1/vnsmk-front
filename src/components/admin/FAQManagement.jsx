@@ -135,26 +135,22 @@ const FAQManagement = ({ onStatsUpdate }) => {
     setShowPreviewDialog(true);
   };
 
-  const downloadFAQData = async () => {
+  const downloadFAQData = () => {
     try {
-      const response = await adminApi.downloadFAQs();
-      if (response.ok) {
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `faqs-${new Date().toISOString().split('T')[0]}.json`;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
-        toast.success('FAQ data downloaded');
-      } else {
-        toast.error('Failed to download FAQ data');
-      }
+      const dataStr = JSON.stringify(faqs, null, 2);
+      const blob = new Blob([dataStr], { type: 'application/json' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `faqs-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      toast.success('FAQ data downloaded');
     } catch (error) {
       console.error('Error downloading FAQ data:', error);
-      toast.error('Error downloading FAQ data. Please check your admin permissions.');
+      toast.error('Error downloading FAQ data.');
     }
   };
 

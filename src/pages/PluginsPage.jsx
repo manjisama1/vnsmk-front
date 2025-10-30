@@ -12,13 +12,13 @@ import { Filter, Plus, Search, Copy, Heart, MessageCircle, ExternalLink, Sticker
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
+import { useLikes } from '@/contexts/LikeContext';
 import { API_ENDPOINTS } from '@/config/api';
 
 const PluginsPage = () => {
   const { user, requireAuth, showLogin, setShowLogin, startGitHubLogin, loading: authLoading } = useAuth();
-  
-  // Use global cached data instead of individual API calls
   const { plugins, loading, refreshData } = useData();
+  const { toggleLike, getPendingLikeStatus, hasPendingLikes, getRemainingTime, processing, pendingCount } = useLikes();
   
   const [filteredPlugins, setFilteredPlugins] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -144,37 +144,20 @@ const PluginsPage = () => {
   };
 
   const handleLikePlugin = (pluginId) => {
-    requireAuth(async () => {
+    requireAuth(() => {
       if (!user) {
         return;
       }
+
+      const plugin = plugins.find(p => p.id === pluginId);
+      const currentlyLiked = plugin?.likedBy?.includes(user.id.toString()) || false;
+      const pendingStatus = getPendingLikeStatus(pluginId);
+      const actualStatus = pendingStatus !== undefined ? pendingStatus : currentlyLiked;
       
-      try {
-        const response = await fetch(`${API_ENDPOINTS.plugins}/${pluginId}/like`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            userId: user.id.toString()
-          }),
-        });
-
-        const data = await response.json();
-
-        if (data.success) {
-          // Refresh data to get updated plugins list
-          await refreshData();
-          
-          const hasLiked = data.plugin.likedBy && data.plugin.likedBy.includes(user.id.toString());
-          toast.success(hasLiked ? 'Plugin liked!' : 'Plugin unliked!');
-        } else {
-          throw new Error(data.error || 'Failed to like plugin');
-        }
-      } catch (error) {
-        console.error('Like Plugin Error:', error);
-        toast.error('Failed to like plugin');
-      }
+      toggleLike(pluginId, user.id.toString(), actualStatus);
+      
+      const newStatus = !actualStatus;
+      toast.success(newStatus ? 'Plugin liked! (will sync in 5min)' : 'Plugin unliked! (will sync in 5min)');
     });
   };
 
@@ -217,9 +200,19 @@ const PluginsPage = () => {
                 {plugins.filter(p => p.status === 'pending').length} Pending
               </Badge>
             )}
+            {hasPendingLikes() && (
+              <Badge className="bg-blue-100 text-blue-800 border-blue-200">
+                {pendingCount} Likes Pending
+              </Badge>
+            )}
           </div>
           <p className="text-lg text-muted-foreground">
             Discover and manage plugins to extend your bot's functionality
+            {hasPendingLikes() && (
+              <span className="block text-sm text-blue-600 mt-1">
+                {pendingCount} like changes will sync in {Math.ceil(getRemainingTime() / 60000)} minutes
+              </span>
+            )}
           </p>
         </div>
 
@@ -446,20 +439,31 @@ const PluginsPage = () => {
                         className={`text-xs ${
                           isPending 
                             ? 'opacity-50 cursor-not-allowed' 
-                            : user && plugin.likedBy && plugin.likedBy.includes(user.id.toString())
-                              ? 'bg-red-50 text-red-600 border-red-200 hover:bg-red-100'
-                              : ''
-                        }`}
+                            : (() => {
+                                const currentlyLiked = user && plugin.likedBy && plugin.likedBy.includes(user.id.toString());
+                                const pendingStatus = getPendingLikeStatus(plugin.id);
+                                const actualStatus = pendingStatus !== undefined ? pendingStatus : currentlyLiked;
+                                return actualStatus
+                                  ? 'bg-red-50 text-red-600 border-red-200 hover:bg-red-100'
+                                  : '';
+                              })()
+                        } ${getPendingLikeStatus(plugin.id) !== undefined ? 'border-blue-300 bg-blue-50' : ''}`}
                         disabled={isPending}
                       >
                         <Heart 
                           className={`w-3 h-3 mr-1 ${
-                            user && plugin.likedBy && plugin.likedBy.includes(user.id.toString()) && !isPending
-                              ? 'fill-red-500 text-red-500'
-                              : ''
+                            (() => {
+                              const currentlyLiked = user && plugin.likedBy && plugin.likedBy.includes(user.id.toString());
+                              const pendingStatus = getPendingLikeStatus(plugin.id);
+                              const actualStatus = pendingStatus !== undefined ? pendingStatus : currentlyLiked;
+                              return actualStatus && !isPending ? 'fill-red-500 text-red-500' : '';
+                            })()
                           }`} 
                         />
                         {plugin.likes}
+                        {getPendingLikeStatus(plugin.id) !== undefined && (
+                          <span className="ml-1 text-xs text-blue-600">*</span>
+                        )}
                       </Button>
 
                       <Button
