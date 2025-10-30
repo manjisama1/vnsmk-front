@@ -22,6 +22,7 @@ const SessionPage = () => {
   const [qrCount, setQrCount] = useState(0);
   const [qrTimer, setQrTimer] = useState(60);
   const [statusMessage, setStatusMessage] = useState('');
+  const [pairingError, setPairingError] = useState('');
 
 
   const resetStates = () => {
@@ -31,6 +32,7 @@ const SessionPage = () => {
     setLoading(false);
     setCopied(false);
     setStatusMessage('');
+    setPairingError('');
     setQrTimer(0);
     setQrScanned(false);
     setQrCount(0);
@@ -260,6 +262,7 @@ const SessionPage = () => {
     setLoading(true);
     setPairingCode('');
     setSessionId('');
+    setPairingError('');
     setStatusMessage('Connecting to WhatsApp and generating pairing code...');
 
     try {
@@ -289,20 +292,17 @@ const SessionPage = () => {
       } else {
         // Check if it's maintenance mode
         if (data.error === 'MAINTENANCE_MODE' || response.status === 503) {
-          // Show custom maintenance alert
-          toast.error('🔧 Pairing code is under maintenance. Please use QR code for now.', {
-            duration: 5000,
+          setPairingError('Pairing code is under maintenance. You can try again or use QR code method.');
+          toast.error('🔧 Pairing code is under maintenance but you can still try. It might not work properly.', {
+            duration: 8000,
             style: {
               background: '#FEF3C7',
               color: '#92400E',
               border: '1px solid #F59E0B'
             }
           });
-          // Switch to QR tab automatically (without triggering generation)
-          setTimeout(() => {
-            setActiveTab('qr');
-          }, 1000);
         } else {
+          setPairingError(data.message || data.error || 'Failed to generate pairing code. Please try again.');
           toast.error(data.message || data.error || 'Failed to generate pairing code');
         }
       }
@@ -310,6 +310,7 @@ const SessionPage = () => {
       setStatusMessage('');
     } catch (error) {
       console.error('Pairing Code Generation Error:', error);
+      setPairingError('Network error. Please check your connection and try again.');
       toast.error('Network error. Please try again.');
       setLoading(false);
       setStatusMessage('');
@@ -472,8 +473,8 @@ const SessionPage = () => {
               <span className="font-medium">⚠️ Maintenance Notice</span>
             </div>
             <p className="text-yellow-700 text-sm mt-1">
-              Pairing code feature is currently under maintenance due to Baileys library issues. 
-              Please use QR code method for now.
+              Pairing code feature is under maintenance and might not work properly. 
+              You can still try it, but QR code method is more reliable.
             </p>
           </div>
 
@@ -525,6 +526,13 @@ const SessionPage = () => {
                   {statusMessage && (
                     <div className="text-center mt-4">
                       <p className="text-sm text-muted-foreground animate-pulse">{statusMessage}</p>
+                    </div>
+                  )}
+                  {pairingError && (
+                    <div className="text-center mt-4">
+                      <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                        <p className="text-sm text-red-700">{pairingError}</p>
+                      </div>
                     </div>
                   )}
                 </div>

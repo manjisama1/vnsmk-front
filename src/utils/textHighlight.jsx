@@ -209,8 +209,8 @@ export const parseHighlightedText = (text) => {
     {
       regex: /black1`([^`]+)`/g,
       style: {
-        background: '#f9fafb',
-        color: '#111827',
+        background: '#000000ff',
+        color: '#ffffffff',
         padding: '4px 8px',
         borderRadius: '8px',
         fontWeight: '500',
@@ -221,7 +221,7 @@ export const parseHighlightedText = (text) => {
     {
       regex: /black2`([^`]+)`/g,
       style: {
-        background: '#f3f4f6',
+        background: '#d4d4d4ff',
         color: '#1f2937',
         padding: '4px 8px',
         borderRadius: '8px',
@@ -233,7 +233,7 @@ export const parseHighlightedText = (text) => {
     {
       regex: /black3`([^`]+)`/g,
       style: {
-        background: '#e5e7eb',
+        background: '#a9aaadff',
         color: '#374151',
         padding: '4px 8px',
         borderRadius: '8px',
@@ -245,8 +245,8 @@ export const parseHighlightedText = (text) => {
     {
       regex: /black4`([^`]+)`/g,
       style: {
-        background: '#d1d5db',
-        color: '#4b5563',
+        background: '#7b7b7bff',
+        color: '#27292bff',
         padding: '4px 8px',
         borderRadius: '8px',
         fontWeight: '500',
