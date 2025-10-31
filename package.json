@@ -1,6 +1,7 @@
 {
   "name": "vinsmoke-bot-frontend",
   "version": "1.0.0",
+  "type": "module",
   "private": true,
   "dependencies": {
     "@radix-ui/react-dialog": "^1.0.5",
