@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -33,19 +33,33 @@ const Navigation = () => {
     { id: 'support', label: 'Support', icon: HeadphonesIcon, path: '/support' },
   ];
 
+
+
   const handleLogout = () => {
     logout();
     setShowProfile(false);
   };
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-card/80 backdrop-blur-lg border-b border-border">
+    <nav className="fixed top-0 left-0 w-full z-50 bg-card/80 backdrop-blur-lg border-b border-border">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-              <MessageSquare className="w-5 h-5 text-primary-foreground" />
+            <div className="w-8 h-8 flex items-center justify-center">
+              <img 
+                src="/logo.svg" 
+                alt="Vinsmoke Bot Logo" 
+                className="w-8 h-8"
+                onError={(e) => {
+                  // Fallback to icon if logo fails to load
+                  e.target.style.display = 'none';
+                  e.target.nextSibling.style.display = 'flex';
+                }}
+              />
+              <div className="w-8 h-8 bg-primary rounded-lg items-center justify-center hidden">
+                <MessageSquare className="w-5 h-5 text-primary-foreground" />
+              </div>
             </div>
             <span className="text-lg font-bold text-foreground">Vinsmoke</span>
           </Link>

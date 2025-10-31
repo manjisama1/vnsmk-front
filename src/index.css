@@ -186,6 +186,29 @@ code {
   background: hsl(var(--muted-foreground) / 0.5);
 }
 
+/* Prevent layout shift when modals open - Modern approach */
+html {
+  scrollbar-gutter: stable;
+}
+
+/* Fallback for older browsers */
+@supports not (scrollbar-gutter: stable) {
+  body {
+    overflow-y: scroll;
+  }
+}
+
+/* Ensure the navigation bar doesn't shift */
+nav {
+  width: 100vw;
+  box-sizing: border-box;
+}
+
+/* Prevent horizontal scrollbar */
+body {
+  overflow-x: hidden;
+}
+
 /* Animations */
 @keyframes slideDown {
   from {
