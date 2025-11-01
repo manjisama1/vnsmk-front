@@ -159,9 +159,9 @@ const FAQPage = () => {
                   </CardTitle>
                 </CardHeader>
 
-                <div className={`overflow-hidden transition-all duration-300 ${isOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}>
-                  <CardContent className="pt-0 pb-6">
-                    <div className="text-muted-foreground leading-relaxed mb-4">
+                {isOpen && (
+                  <CardContent className="pt-0 pb-6 animate-in slide-in-from-top-2 duration-300">
+                    <div className="text-muted-foreground leading-relaxed mb-4 whitespace-pre-wrap break-words">
                       <HighlightedText text={item.answer} />
                     </div>
                     {item.tags && item.tags.length > 0 && (
@@ -177,7 +177,7 @@ const FAQPage = () => {
                       </div>
                     )}
                   </CardContent>
-                </div>
+                )}
               </Card>
             );
           })}

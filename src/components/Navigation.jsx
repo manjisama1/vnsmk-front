@@ -47,9 +47,9 @@ const Navigation = () => {
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
             <div className="w-8 h-8 flex items-center justify-center">
-              <img 
-                src="/logo.svg" 
-                alt="Vinsmoke Bot Logo" 
+              <img
+                src="/logo.svg"
+                alt="Vinsmoke Bot Logo"
                 className="w-8 h-8"
                 onError={(e) => {
                   // Fallback to icon if logo fails to load

@@ -27,7 +27,7 @@ const SessionManagement = ({ onStatsUpdate }) => {
     setLoading(true);
     try {
       const data = await adminApi.getSessions();
-      if (data.success !== false) {
+      if (data.success === true || data.sessions) {
         setSessions(data.sessions || []);
       } else {
         toast.error(data.error || 'Failed to fetch sessions');
@@ -45,10 +45,10 @@ const SessionManagement = ({ onStatsUpdate }) => {
 
     try {
       const data = await adminApi.deleteSession(sessionId);
-      if (data.success !== false) {
+      if (data.success === true || data.message === 'Session deleted successfully') {
         toast.success('Session deleted successfully');
         fetchSessions();
-        onStatsUpdate();
+        onStatsUpdate?.();
       } else {
         toast.error(data.error || 'Failed to delete session');
       }
