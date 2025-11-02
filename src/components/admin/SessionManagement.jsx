@@ -76,8 +76,37 @@ const SessionManagement = ({ onStatsUpdate }) => {
         toast.error('Failed to download session data');
       }
     } catch (error) {
-      console.error('Error downloading session data:', error);
       toast.error('Error downloading session data. Please check your admin permissions.');
+    }
+  };
+
+  const downloadSessionCreds = async (sessionId) => {
+    try {
+      const response = await adminApi.downloadSessionCreds(sessionId);
+      
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'creds.json';
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        
+        toast.success(`Session credentials downloaded`);
+      } else {
+        let errorData;
+        try {
+          errorData = await response.json();
+        } catch (e) {
+          errorData = { error: `HTTP ${response.status}: ${response.statusText}` };
+        }
+        toast.error(errorData.error || 'Failed to download session credentials');
+      }
+    } catch (error) {
+      toast.error('Error downloading session credentials. Please check your admin permissions.');
     }
   };
 
@@ -158,8 +187,18 @@ const SessionManagement = ({ onStatsUpdate }) => {
                     <Button
                       variant="outline"
                       size="sm"
+                      onClick={() => downloadSessionCreds(session.sessionId)}
+                      className="text-blue-600 hover:text-blue-700"
+                      title="Download session credentials (creds.json)"
+                    >
+                      <Download className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
                       onClick={() => deleteSession(session.sessionId)}
                       className="text-red-600 hover:text-red-700"
+                      title="Delete session"
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>
