@@ -58,27 +58,7 @@ const SessionManagement = ({ onStatsUpdate }) => {
     }
   };
 
-  const downloadSessionData = async () => {
-    try {
-      const response = await adminApi.downloadSessions();
-      if (response.ok) {
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `sessions-${new Date().toISOString().split('T')[0]}.json`;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
-        toast.success('Session data downloaded');
-      } else {
-        toast.error('Failed to download session data');
-      }
-    } catch (error) {
-      toast.error('Error downloading session data. Please check your admin permissions.');
-    }
-  };
+
 
   const downloadSessionCreds = async (sessionId) => {
     try {
@@ -139,10 +119,6 @@ const SessionManagement = ({ onStatsUpdate }) => {
           <Button onClick={fetchSessions} disabled={loading}>
             <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
             Refresh
-          </Button>
-          <Button variant="outline" onClick={downloadSessionData}>
-            <Download className="w-4 h-4 mr-2" />
-            Download All
           </Button>
         </div>
         
