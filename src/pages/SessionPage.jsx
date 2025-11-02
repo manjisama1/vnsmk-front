@@ -15,7 +15,9 @@ const SessionPage = () => {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [sessionId, setSessionId] = useState('');
   const [copied, setCopied] = useState(false);
+  const [copiedPairing, setCopiedPairing] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [connecting, setConnecting] = useState(false);
   const [socket, setSocket] = useState(null);
   const [activeTab, setActiveTab] = useState('qr');
   const [qrScanned, setQrScanned] = useState(false);
@@ -30,7 +32,9 @@ const SessionPage = () => {
     setPairingCode('');
     setSessionId('');
     setLoading(false);
+    setConnecting(false);
     setCopied(false);
+    setCopiedPairing(false);
     setStatusMessage('');
     setPairingError('');
     setQrTimer(0);
@@ -84,6 +88,7 @@ const SessionPage = () => {
 
       socket.on('qr-scanned', () => {
         setQrScanned(true);
+        setConnecting(true);
         setQrTimer(0);
         console.log('✅ QR Code scanned');
         toast.success('QR Code scanned! Connecting...');
@@ -98,6 +103,7 @@ const SessionPage = () => {
         setSessionId('');
         setQrTimer(0);
         setLoading(false);
+        setConnecting(false);
         setQrScanned(false);
         setQrCount(0);
         setStatusMessage('');
@@ -118,9 +124,17 @@ const SessionPage = () => {
         console.log('🔑 Pairing code received');
       });
 
+      // Handle when pairing code is entered and connecting
+      socket.on('pairing-connecting', () => {
+        setConnecting(true);
+        console.log('🔄 Pairing code entered, connecting...');
+        toast.success('Pairing code entered! Connecting...');
+      });
+
       socket.on('session-connected', (data) => {
         setSessionId(data.sessionId);
         setQrScanned(false);
+        setConnecting(false);
         console.log('✅ Session connected:', data.sessionId);
         toast.success('Session connected successfully!');
         setLoading(false);
@@ -133,6 +147,7 @@ const SessionPage = () => {
         socket.off('qr-scanned');
         socket.off('qr-expired');
         socket.off('pairing-code');
+        socket.off('pairing-connecting');
         socket.off('session-connected');
       };
     }
@@ -148,7 +163,7 @@ const SessionPage = () => {
   useEffect(() => {
     let interval = null;
 
-    if (qrCode && !qrScanned && !sessionId?.startsWith('VINSMOKEm@')) {
+    if (qrCode && !qrScanned && !connecting && !sessionId?.startsWith('VINSMOKE@')) {
       interval = setInterval(() => {
         setQrTimer((prevTimer) => {
           if (prevTimer <= 1) {
@@ -161,6 +176,7 @@ const SessionPage = () => {
               setPairingCode('');
               setSessionId('');
               setQrScanned(false);
+              setConnecting(false);
               setQrCount(0);
               setStatusMessage('');
               setLoading(false);
@@ -184,7 +200,7 @@ const SessionPage = () => {
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [qrCode, qrScanned, sessionId, socket]);
+  }, [qrCode, qrScanned, connecting, sessionId, socket]);
 
   const generateQR = async () => {
     // Initialize socket connection when user clicks generate
@@ -343,11 +359,16 @@ const SessionPage = () => {
     }
   };
 
-  const copyToClipboard = (text) => {
+  const copyToClipboard = (text, type = 'session') => {
     navigator.clipboard.writeText(text);
-    setCopied(true);
+    if (type === 'pairing') {
+      setCopiedPairing(true);
+      setTimeout(() => setCopiedPairing(false), 2000);
+    } else {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
     toast.success('Copied to clipboard!');
-    setTimeout(() => setCopied(false), 2000);
   };
 
   return (
@@ -414,7 +435,7 @@ const SessionPage = () => {
                 </div>
               ) : (
                 <div className="flex flex-col items-center justify-center py-12">
-                  {!sessionId || !sessionId.startsWith('VINSMOKEm@') ? (
+                  {!sessionId || !sessionId.startsWith('VINSMOKE@') ? (
                     <>
                       <div className="w-64 h-64 bg-white border-4 border-primary rounded-lg flex items-center justify-center mb-6 p-4 relative">
                         <img src={qrCode} alt="QR Code" className="w-full h-full object-contain" />
@@ -426,20 +447,24 @@ const SessionPage = () => {
                           </div>
                         )}
 
-                        {/* Scanning Overlay */}
-                        {qrScanned && (
+                        {/* Scanning/Connecting Overlay */}
+                        {(qrScanned || connecting) && (
                           <div className="absolute inset-0 bg-primary/20 backdrop-blur-sm rounded-lg flex items-center justify-center">
                             <div className="text-center">
                               <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
-                              <p className="text-primary font-medium">Connecting...</p>
+                              <p className="text-primary font-medium">
+                                {connecting ? 'Establishing connection...' : 'Connecting...'}
+                              </p>
                             </div>
                           </div>
                         )}
                       </div>
 
-                      {qrScanned ? (
+                      {qrScanned || connecting ? (
                         <div className="text-center">
-                          <p className="text-primary font-medium animate-pulse">Processing connection...</p>
+                          <p className="text-primary font-medium animate-pulse">
+                            {connecting ? 'Establishing session...' : 'Processing connection...'}
+                          </p>
                           <p className="text-sm text-muted-foreground mt-1">Please wait while we establish the session</p>
                         </div>
                       ) : (
@@ -465,22 +490,30 @@ const SessionPage = () => {
                   ) : (
                     <div className="w-full">
                       <div className="flex items-center justify-center mb-6">
-                        <CheckCircle2 className="w-16 h-16 text-success" />
+                        <CheckCircle2 className="w-16 h-16 text-green-500" />
+                      </div>
+                      <div className="text-center mb-4">
+                        <h3 className="text-xl font-semibold text-green-600 mb-2">Session Connected Successfully!</h3>
+                        <p className="text-muted-foreground">Your WhatsApp session is now active</p>
                       </div>
                       <div className="bg-muted rounded-lg p-4">
                         <Label className="text-sm font-medium mb-2 block">Session ID</Label>
                         <div className="flex items-center gap-2">
-                          <code className="flex-1 bg-background px-4 py-3 rounded border border-border text-foreground font-mono text-sm">
+                          <code className="flex-1 bg-background px-4 py-3 rounded border border-border text-foreground font-mono text-sm break-all">
                             {sessionId}
                           </code>
                           <Button
                             variant="outline"
                             size="icon"
-                            onClick={() => copyToClipboard(sessionId)}
+                            onClick={() => copyToClipboard(sessionId, 'session')}
+                            title="Copy Session ID"
                           >
-                            {copied ? <CheckCircle2 className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                            {copied ? <CheckCircle2 className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
                           </Button>
                         </div>
+                        <p className="text-xs text-muted-foreground mt-2">
+                          Save this Session ID to use your WhatsApp connection in bots or applications
+                        </p>
                       </div>
                     </div>
                   )}
@@ -572,41 +605,68 @@ const SessionPage = () => {
                 </div>
               ) : (
                 <div className="space-y-6">
-                  <div className="bg-primary/10 border-2 border-primary rounded-lg p-8 text-center">
-                    <p className="text-sm text-muted-foreground mb-2">Your Pairing Code</p>
-                    <div className="text-5xl font-bold text-primary font-mono tracking-wider">
-                      {pairingCode}
-                    </div>
-                  </div>
-
-                  {sessionId && sessionId.startsWith('VINSMOKEm@') ? (
+                  {sessionId && sessionId.startsWith('VINSMOKE@') ? (
                     <div className="space-y-4">
                       <div className="flex items-center justify-center mb-4">
-                        <CheckCircle2 className="w-12 h-12 text-success" />
+                        <CheckCircle2 className="w-16 h-16 text-green-500" />
+                      </div>
+                      <div className="text-center mb-4">
+                        <h3 className="text-xl font-semibold text-green-600 mb-2">Session Connected Successfully!</h3>
+                        <p className="text-muted-foreground">Your WhatsApp session is now active</p>
                       </div>
                       <div className="bg-muted rounded-lg p-4">
                         <Label className="text-sm font-medium mb-2 block">Session ID</Label>
                         <div className="flex items-center gap-2">
-                          <code className="flex-1 bg-background px-4 py-3 rounded border border-border text-foreground font-mono text-sm">
+                          <code className="flex-1 bg-background px-4 py-3 rounded border border-border text-foreground font-mono text-sm break-all">
                             {sessionId}
                           </code>
                           <Button
                             variant="outline"
                             size="icon"
-                            onClick={() => copyToClipboard(sessionId)}
+                            onClick={() => copyToClipboard(sessionId, 'session')}
+                            title="Copy Session ID"
                           >
-                            {copied ? <CheckCircle2 className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                            {copied ? <CheckCircle2 className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
                           </Button>
                         </div>
+                        <p className="text-xs text-muted-foreground mt-2">
+                          Save this Session ID to use your WhatsApp connection in bots or applications
+                        </p>
                       </div>
                     </div>
                   ) : (
-                    <div className="text-center">
-                      <p className="text-muted-foreground animate-pulse">Waiting for connection...</p>
-                      <p className="text-sm text-muted-foreground mt-2">
-                        Enter this code in your WhatsApp app
-                      </p>
-                    </div>
+                    <>
+                      <div className="bg-primary/10 border-2 border-primary rounded-lg p-8 text-center relative">
+                        <p className="text-sm text-muted-foreground mb-2">Your Pairing Code</p>
+                        <div className="text-5xl font-bold text-primary font-mono tracking-wider mb-4">
+                          {pairingCode}
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => copyToClipboard(pairingCode, 'pairing')}
+                          className="absolute top-4 right-4"
+                          title="Copy Pairing Code"
+                        >
+                          {copiedPairing ? <CheckCircle2 className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
+                        </Button>
+                      </div>
+
+                      {connecting ? (
+                        <div className="text-center">
+                          <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                          <p className="text-primary font-medium animate-pulse">Establishing connection...</p>
+                          <p className="text-sm text-muted-foreground mt-1">Please wait while we establish the session</p>
+                        </div>
+                      ) : (
+                        <div className="text-center">
+                          <p className="text-muted-foreground animate-pulse">Waiting for connection...</p>
+                          <p className="text-sm text-muted-foreground mt-2">
+                            Enter this code in your WhatsApp app: Settings → Linked Devices → Link a Device
+                          </p>
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
               )}
